@@ -14,8 +14,18 @@ async def lifespan(app: FastAPI):
     """Application lifespan handler"""
     # Startup
     print("Starting up...")
-    await init_db()
-    print("Database initialized")
+    
+    # Check if database is configured
+    if settings.SUPABASE_DB_HOST or (settings.DATABASE_URL and "localhost" not in settings.DATABASE_URL):
+        try:
+            await init_db()
+            print("Database initialized")
+        except Exception as e:
+            print(f"Warning: Could not connect to database: {e}")
+            print("Server will start but database features may not work")
+    else:
+        print("Database not configured - running in demo mode")
+    
     yield
     # Shutdown
     print("Shutting down...")
