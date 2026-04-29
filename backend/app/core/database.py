@@ -5,35 +5,58 @@ from app.core.config import get_settings
 settings = get_settings()
 
 
-def get_database_url() -> str:
+def get_database_url() -> str | None:
     """Get database URL with async driver for SQLAlchemy async support"""
-    if settings.SUPABASE_DB_HOST:
+    # Check Supabase direct connection first
+    if settings.SUPABASE_DB_HOST and settings.SUPABASE_DB_USER:
         # Use Supabase direct connection with pooling
         return f"postgresql+asyncpg://{settings.SUPABASE_DB_USER}:{settings.SUPABASE_DB_PASSWORD}@{settings.SUPABASE_DB_HOST}:{settings.SUPABASE_DB_PORT}/{settings.SUPABASE_DB_NAME}"
     
-    # Ensure DATABASE_URL uses asyncpg driver
+    # Check DATABASE_URL
     db_url = settings.DATABASE_URL
-    if db_url.startswith("postgresql://"):
-        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
-    elif not db_url.startswith("postgresql+asyncpg://"):
-        # Already has asyncpg prefix or other format
-        pass
-    return db_url
+    if db_url and "localhost" not in db_url and "user:password" not in db_url:
+        # Ensure DATABASE_URL uses asyncpg driver
+        if db_url.startswith("postgresql://"):
+            return db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        elif db_url.startswith("postgresql+asyncpg://"):
+            return db_url
+    
+    return None
 
 
-engine = create_async_engine(
-    get_database_url(),
-    echo=settings.DEBUG,
-    pool_size=5,
-    max_overflow=10,
-    pool_pre_ping=True
-)
+# Lazy engine initialization
+_engine = None
+_async_session_maker = None
 
-async_session_maker = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False
-)
+
+def get_engine():
+    global _engine
+    if _engine is None:
+        db_url = get_database_url()
+        if db_url is None:
+            return None
+        _engine = create_async_engine(
+            db_url,
+            echo=settings.DEBUG,
+            pool_size=5,
+            max_overflow=10,
+            pool_pre_ping=True
+        )
+    return _engine
+
+
+def get_session_maker():
+    global _async_session_maker
+    if _async_session_maker is None:
+        engine = get_engine()
+        if engine is None:
+            return None
+        _async_session_maker = async_sessionmaker(
+            engine,
+            class_=AsyncSession,
+            expire_on_commit=False
+        )
+    return _async_session_maker
 
 
 class Base(DeclarativeBase):
@@ -41,7 +64,10 @@ class Base(DeclarativeBase):
 
 
 async def get_db() -> AsyncSession:
-    async with async_session_maker() as session:
+    session_maker = get_session_maker()
+    if session_maker is None:
+        raise RuntimeError("Database not configured. Please set SUPABASE_DB_* environment variables.")
+    async with session_maker() as session:
         try:
             yield session
         finally:
@@ -50,5 +76,9 @@ async def get_db() -> AsyncSession:
 
 async def init_db():
     """Initialize database tables"""
+    engine = get_engine()
+    if engine is None:
+        print("Database not configured - skipping table creation")
+        return
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
