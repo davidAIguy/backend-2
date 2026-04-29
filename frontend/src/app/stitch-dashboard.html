@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VoiceAI | Orchestrator v2.0</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&amp;family=Space+Grotesk:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#00d9ff",
+                        "inverse-on-surface": "#2f3035",
+                        "surface-container-lowest": "#0c0e12",
+                        "on-tertiary-fixed-variant": "#5700c9",
+                        "on-tertiary-fixed": "#23005b",
+                        "tertiary-container": "#d1bcff",
+                        "on-primary": "#003641",
+                        "on-primary-fixed-variant": "#004e5d",
+                        "surface-dim": "#111318",
+                        "secondary": "#b6c4ff",
+                        "tertiary": "#eaddff",
+                        "on-background": "#e2e2e8",
+                        "tertiary-fixed": "#e9ddff",
+                        "primary-fixed": "#aeecff",
+                        "on-secondary-fixed": "#001550",
+                        "on-primary-container": "#005b6c",
+                        "background": "#111318",
+                        "surface-bright": "#37393e",
+                        "on-secondary-container": "#e4e7ff",
+                        "on-secondary": "#00277f",
+                        "surface-variant": "#333539",
+                        "surface-container-low": "#1a1c20",
+                        "on-primary-fixed": "#001f26",
+                        "on-surface": "#e2e2e8",
+                        "on-tertiary": "#3c0090",
+                        "surface-container": "#1e2024",
+                        "outline-variant": "#3c494d",
+                        "on-surface-variant": "#bbc9ce",
+                        "on-error-container": "#ffdad6",
+                        "secondary-container": "#0056fd",
+                        "primary": "#afecff",
+                        "inverse-surface": "#e2e2e8",
+                        "outline": "#859398",
+                        "error-container": "#93000a",
+                        "surface": "#111318",
+                        "primary-container": "#00d9ff",
+                        "surface-container-highest": "#333539",
+                        "surface-container-high": "#282a2e",
+                        "secondary-fixed-dim": "#b6c4ff",
+                        "secondary-fixed": "#dce1ff",
+                        "inverse-primary": "#00687b",
+                        "tertiary-fixed-dim": "#d1bcff",
+                        "surface-tint": "#00d9ff",
+                        "on-secondary-fixed-variant": "#003ab2",
+                        "on-tertiary-container": "#6500e7",
+                        "on-error": "#690005",
+                        "error": "#ffb4ab"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "1.5rem",
+                        "margin-page": "40px",
+                        "lg": "2.5rem",
+                        "xs": "0.5rem",
+                        "unit": "4px",
+                        "gutter": "24px",
+                        "xl": "4rem",
+                        "sm": "1rem"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-base": ["Inter"],
+                        "mono-data": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-base": ["16px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                        "mono-data": ["14px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .data-glow { text-shadow: 0 0 10px rgba(0, 217, 255, 0.5); }
+        .voice-wave {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .voice-bar {
+            width: 3px;
+            background: #00D9FF;
+            border-radius: 99px;
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-[#050505] text-on-surface font-body-base overflow-x-hidden">
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-full flex flex-col w-[280px] bg-[#050505]/80 backdrop-blur-[20px] border-r border-white/10 shadow-[10px_0_30px_rgba(0,0,0,0.5)] z-[60]">
+<!-- Brand Header -->
+<div class="p-8">
+<h1 class="text-2xl font-black tracking-tighter text-[#00D9FF] drop-shadow-[0_0_10px_rgba(0,217,255,0.5)]">VoiceAI</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] text-white/40 mt-1">Orchestrator v2.0</p>
+</div>
+<!-- Primary CTA -->
+<div class="px-6 mb-8">
+<button class="w-full py-3 px-4 rounded-xl bg-primary-container text-on-primary font-bold text-sm flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,217,255,0.4)] hover:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                New Agent
+            </button>
+</div>
+<!-- Navigation Links -->
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-[#00D9FF] border-l-2 border-[#00D9FF] bg-gradient-to-r from-[#00D9FF]/10 to-transparent font-['Inter'] text-sm tracking-tight" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-white/50 hover:text-white/80 transition-all font-['Inter'] text-sm tracking-tight hover:bg-white/5" href="#">
+<span class="material-symbols-outlined" data-icon="smart_toy">smart_toy</span>
+                Agents
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-white/50 hover:text-white/80 transition-all font-['Inter'] text-sm tracking-tight hover:bg-white/5" href="#">
+<span class="material-symbols-outlined" data-icon="call">call</span>
+                Calls
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-white/50 hover:text-white/80 transition-all font-['Inter'] text-sm tracking-tight hover:bg-white/5" href="#">
+<span class="material-symbols-outlined" data-icon="build">build</span>
+                Tools
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-white/50 hover:text-white/80 transition-all font-['Inter'] text-sm tracking-tight hover:bg-white/5" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+                Costs
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-white/50 hover:text-white/80 transition-all font-['Inter'] text-sm tracking-tight hover:bg-white/5" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                Settings
+            </a>
+</nav>
+<!-- Footer Links -->
+<div class="p-6 border-t border-white/5 space-y-2">
+<a class="flex items-center gap-3 px-4 py-2 text-white/40 hover:text-white/80 transition-all text-xs" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="description">description</span>
+                Docs
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-white/40 hover:text-white/80 transition-all text-xs" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="help">help</span>
+                Support
+            </a>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<main class="ml-[280px] min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-8 h-16 w-full sticky top-0 z-50 bg-[#050505]/40 backdrop-blur-md border-b border-white/5">
+<div class="flex items-center gap-6">
+<span class="font-['Inter'] text-xs uppercase tracking-widest font-semibold text-white/40">Command Center</span>
+<nav class="flex gap-4">
+<a class="font-['Inter'] text-xs uppercase tracking-widest font-semibold text-[#00D9FF] border-b border-[#00D9FF] py-5" href="#">Network</a>
+<a class="font-['Inter'] text-xs uppercase tracking-widest font-semibold text-white/40 hover:text-[#00D9FF] transition-colors py-5" href="#">Analytics</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<input class="bg-white/5 border-none rounded-full px-4 py-1.5 text-xs text-white placeholder-white/20 focus:ring-1 focus:ring-[#00D9FF] w-48 transition-all group-hover:w-64" placeholder="Search systems..." type="text"/>
+</div>
+<button class="px-4 py-1.5 rounded-full bg-white/5 text-[#00D9FF] text-xs font-bold border border-[#00D9FF]/20 hover:bg-[#00D9FF]/10 transition-all">
+                    Deploy
+                </button>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-white/40 cursor-pointer hover:text-white" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-white/40 cursor-pointer hover:text-white" data-icon="account_circle">account_circle</span>
+</div>
+</div>
+</header>
+<!-- Page Canvas -->
+<div class="p-margin-page space-y-gutter max-w-7xl mx-auto w-full">
+<!-- Hero Section / Voice Visualizer -->
+<section class="glass rounded-3xl p-10 overflow-hidden relative group">
+<div class="absolute top-0 right-0 p-8">
+<div class="flex items-center gap-3">
+<span class="flex h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
+<span class="text-[10px] font-mono-data uppercase text-white/40 tracking-widest">System Live: 99.98% Uptime</span>
+</div>
+</div>
+<div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
+<div class="space-y-6 max-w-xl">
+<h2 class="font-display-lg text-display-lg text-white">Advanced Voice <br/><span class="text-[#00D9FF] data-glow">Orchestration</span></h2>
+<p class="text-on-surface-variant font-body-base leading-relaxed">Experience human-like interaction with sub-200ms latency. Your fleet of AI agents is ready to deploy across global nodes.</p>
+<div class="flex gap-4">
+<button class="bg-[#00D9FF] text-on-primary px-8 py-4 rounded-xl font-bold flex items-center gap-2 hover:scale-[1.02] transition-all">
+<span class="material-symbols-outlined" data-icon="mic_external_on" data-weight="fill">mic_external_on</span>
+                                Start Test Call
+                            </button>
+<button class="bg-white/5 border border-white/10 px-8 py-4 rounded-xl font-bold hover:bg-white/10 transition-all">
+                                Explore Models
+                            </button>
+</div>
+</div>
+<div class="w-full md:w-auto glass rounded-2xl p-8 border-[#00D9FF]/20 flex flex-col items-center gap-8 relative overflow-hidden">
+<div class="absolute inset-0 bg-[#00D9FF]/5 blur-3xl rounded-full"></div>
+<div class="voice-wave relative z-10">
+<div class="voice-bar h-8 animate-[bounce_1s_infinite]"></div>
+<div class="voice-bar h-12 animate-[bounce_1.2s_infinite]"></div>
+<div class="voice-bar h-16 animate-[bounce_0.8s_infinite]"></div>
+<div class="voice-bar h-24 animate-[bounce_1.1s_infinite]"></div>
+<div class="voice-bar h-12 animate-[bounce_0.9s_infinite]"></div>
+<div class="voice-bar h-20 animate-[bounce_1.3s_infinite]"></div>
+<div class="voice-bar h-10 animate-[bounce_0.7s_infinite]"></div>
+<div class="voice-bar h-14 animate-[bounce_1s_infinite]"></div>
+</div>
+<div class="text-center space-y-2 relative z-10">
+<div class="text-[10px] font-mono-data text-[#00D9FF] uppercase tracking-widest">Active Processing</div>
+<div class="text-xl font-display-lg text-white">Agent Alpha-7</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Stat Card 1 -->
+<div class="glass p-6 rounded-2xl space-y-4 hover:border-[#00D9FF]/30 transition-all group">
+<div class="flex justify-between items-start">
+<div class="p-2 rounded-lg bg-white/5 text-[#00D9FF]">
+<span class="material-symbols-outlined" data-icon="call">call</span>
+</div>
+<span class="text-xs font-mono-data text-green-400">+12.4%</span>
+</div>
+<div>
+<div class="text-white/40 text-xs font-label-sm uppercase tracking-wider">Total Calls</div>
+<div class="text-3xl font-mono-data text-white data-glow mt-1">1,284,042</div>
+</div>
+<div class="h-10 flex items-end gap-1">
+<div class="w-full h-4 bg-[#00D9FF]/20 rounded-sm"></div>
+<div class="w-full h-8 bg-[#00D9FF]/40 rounded-sm"></div>
+<div class="w-full h-6 bg-[#00D9FF]/20 rounded-sm"></div>
+<div class="w-full h-10 bg-[#00D9FF] rounded-sm shadow-[0_0_8px_rgba(0,217,255,0.4)]"></div>
+</div>
+</div>
+<!-- Stat Card 2 -->
+<div class="glass p-6 rounded-2xl space-y-4 hover:border-[#00D9FF]/30 transition-all">
+<div class="flex justify-between items-start">
+<div class="p-2 rounded-lg bg-white/5 text-[#00D9FF]">
+<span class="material-symbols-outlined" data-icon="smart_toy">smart_toy</span>
+</div>
+<span class="text-xs font-mono-data text-white/40">Active</span>
+</div>
+<div>
+<div class="text-white/40 text-xs font-label-sm uppercase tracking-wider">Active Agents</div>
+<div class="text-3xl font-mono-data text-white data-glow mt-1">42</div>
+</div>
+<div class="flex -space-x-2 mt-4">
+<img class="w-8 h-8 rounded-full border-2 border-[#050505]" data-alt="portrait of a professional customer service representative avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkkfU96BXggUZoGvH_bwUxZXQnCSCAMvczBbnCfTzEpAd0YaPBcn3kcysX8FZmBl7BeKMi6NLdRJeN1Mm_cw3nKPoh32vGWFwccONm4dRO3DsL6-DRzx5_ZxvU7O5p8-fKREManXvlIdR3quTSceGnZoJOuVz520iWa3ScqfXW4DSFYtBL-cIVegUBOYiEe14c-2ndqNqmyp3a8maRnm9dVbloWjNc1ZpBqmE6eB5a1nxAvmeDHKNCQJcM0JVGX2xH6LRn7WD1jaE_"/>
+<img class="w-8 h-8 rounded-full border-2 border-[#050505]" data-alt="portrait of a diverse male tech support avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAd8L3aiLJMUepsMGroQpN7eRJ-YcinOgcLmsx3cNiBCNf7EVFGreh5kuz2yXKsmpgtmm22B0fUuglp97yMm3fZNMRj3yHtogDxnjOsW7_xRGgnkNIzjEEzykKbEzcbsqpxxJj0nrUaptsAi1_EjdxJsM5s40XUEX6yRVnpabWujDBvnqs6EUG_qCSMhLHt2_rq4iPCnHz9c1sCYU16LoBB2Iz_At4PtsIZUoN3IopaDLiEsFT2wjDt_VfEFKG5_ychcCTvoUpNt20R"/>
+<img class="w-8 h-8 rounded-full border-2 border-[#050505]" data-alt="smiling female support specialist avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4eITZw5gpBZUPAPnP2MY7lXL2KoMOqPKQyekhGTpR0voK0srKO8F46VEDB1OzUw9CQ0TAiZ1t6qB0NzBiIVBgg0aksV1Cw_28-SMs9KRm6a2KNzZVMsoqUcc0G4CXAhsiAarYQx3u7daduPhlsqyk7KkA12NnFCUVa38wSykBs3_fnP9VyrNw295N47pkuToUJCU-Crn5SvPSBXv0GljSVtb0snloiOVx3awSZmpxLWYmWlEiHkGS1txK88RItn3TB3eRsSmGabx9"/>
+<div class="w-8 h-8 rounded-full bg-white/5 border-2 border-[#050505] flex items-center justify-center text-[10px] text-white/40">+39</div>
+</div>
+</div>
+<!-- Stat Card 3 -->
+<div class="glass p-6 rounded-2xl space-y-4 hover:border-[#00D9FF]/30 transition-all">
+<div class="flex justify-between items-start">
+<div class="p-2 rounded-lg bg-white/5 text-[#00D9FF]">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+</div>
+<span class="text-xs font-mono-data text-red-400">-4.2%</span>
+</div>
+<div>
+<div class="text-white/40 text-xs font-label-sm uppercase tracking-wider">Monthly Cost</div>
+<div class="text-3xl font-mono-data text-white data-glow mt-1">$4,290.12</div>
+</div>
+<div class="text-[10px] text-white/20 mt-4">Next billing cycle: Oct 12, 2023</div>
+</div>
+<!-- Stat Card 4 -->
+<div class="glass p-6 rounded-2xl space-y-4 hover:border-[#00D9FF]/30 transition-all">
+<div class="flex justify-between items-start">
+<div class="p-2 rounded-lg bg-white/5 text-[#00D9FF]">
+<span class="material-symbols-outlined" data-icon="timer">timer</span>
+</div>
+<span class="text-xs font-mono-data text-green-400">Optimal</span>
+</div>
+<div>
+<div class="text-white/40 text-xs font-label-sm uppercase tracking-wider">Avg Duration</div>
+<div class="text-3xl font-mono-data text-white data-glow mt-1">4m 12s</div>
+</div>
+<div class="w-full bg-white/5 h-1.5 rounded-full mt-4">
+<div class="bg-[#00D9FF] h-full w-[65%] rounded-full shadow-[0_0_8px_rgba(0,217,255,0.4)]"></div>
+</div>
+</div>
+</div>
+<!-- Main Dashboard Area (Table & Secondary Features) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Calls Table -->
+<div class="lg:col-span-2 glass rounded-2xl overflow-hidden">
+<div class="px-8 py-6 flex justify-between items-center border-b border-white/5">
+<h3 class="font-headline-md text-headline-md text-white">Recent Calls</h3>
+<button class="text-xs font-bold text-[#00D9FF] hover:underline">View All Records</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-white/5 text-[10px] uppercase tracking-widest text-white/40">
+<tr>
+<th class="px-8 py-4 font-semibold">Caller</th>
+<th class="px-8 py-4 font-semibold">Agent Used</th>
+<th class="px-8 py-4 font-semibold">Duration</th>
+<th class="px-8 py-4 font-semibold">Status</th>
+<th class="px-8 py-4 font-semibold">Action</th>
+</tr>
+</thead>
+<tbody class="text-sm">
+<tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+<td class="px-8 py-5">
+<div class="font-bold text-white">Marcus Holloway</div>
+<div class="text-xs text-white/40">+1 (555) 012-9932</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-md bg-[#00D9FF]/10 flex items-center justify-center text-[#00D9FF]">
+<span class="material-symbols-outlined text-[14px]" data-icon="smart_toy">smart_toy</span>
+</div>
+<span class="text-white/80">Support-Alpha</span>
+</div>
+</td>
+<td class="px-8 py-5 font-mono-data text-white/60">05:22</td>
+<td class="px-8 py-5">
+<span class="px-2 py-1 rounded-md bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-wider">Completed</span>
+</td>
+<td class="px-8 py-5">
+<button class="material-symbols-outlined text-white/20 hover:text-[#00D9FF]" data-icon="play_circle">play_circle</button>
+</td>
+</tr>
+<tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+<td class="px-8 py-5">
+<div class="font-bold text-white">Elena Rodriguez</div>
+<div class="text-xs text-white/40">+44 20 7946 0958</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-md bg-[#00D9FF]/10 flex items-center justify-center text-[#00D9FF]">
+<span class="material-symbols-outlined text-[14px]" data-icon="smart_toy">smart_toy</span>
+</div>
+<span class="text-white/80">Sales-Bot-V2</span>
+</div>
+</td>
+<td class="px-8 py-5 font-mono-data text-white/60">02:15</td>
+<td class="px-8 py-5">
+<span class="px-2 py-1 rounded-md bg-[#00D9FF]/10 text-[#00D9FF] text-[10px] font-bold uppercase tracking-wider">Active</span>
+</td>
+<td class="px-8 py-5">
+<button class="material-symbols-outlined text-white/20 hover:text-[#00D9FF]" data-icon="equalizer">equalizer</button>
+</td>
+</tr>
+<tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+<td class="px-8 py-5">
+<div class="font-bold text-white">Tariq Ahmed</div>
+<div class="text-xs text-white/40">+971 4 123 4567</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-md bg-[#00D9FF]/10 flex items-center justify-center text-[#00D9FF]">
+<span class="material-symbols-outlined text-[14px]" data-icon="smart_toy">smart_toy</span>
+</div>
+<span class="text-white/80">Support-Alpha</span>
+</div>
+</td>
+<td class="px-8 py-5 font-mono-data text-white/60">12:04</td>
+<td class="px-8 py-5">
+<span class="px-2 py-1 rounded-md bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-wider">Completed</span>
+</td>
+<td class="px-8 py-5">
+<button class="material-symbols-outlined text-white/20 hover:text-[#00D9FF]" data-icon="play_circle">play_circle</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Secondary Widgets -->
+<div class="space-y-gutter">
+<!-- Quick Actions -->
+<div class="glass p-8 rounded-2xl space-y-6">
+<h4 class="text-white font-bold text-sm tracking-widest uppercase">System Maintenance</h4>
+<div class="space-y-4">
+<button class="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#00D9FF]/50 hover:bg-[#00D9FF]/5 transition-all group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#00D9FF]" data-icon="rocket_launch">rocket_launch</span>
+<span class="text-sm font-semibold text-white">Deploy Updates</span>
+</div>
+<span class="material-symbols-outlined text-white/20 group-hover:text-white" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#00D9FF]/50 hover:bg-[#00D9FF]/5 transition-all group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#00D9FF]" data-icon="analytics">analytics</span>
+<span class="text-sm font-semibold text-white">Full System Audit</span>
+</div>
+<span class="material-symbols-outlined text-white/20 group-hover:text-white" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Regional Health -->
+<div class="glass p-8 rounded-2xl space-y-6 relative overflow-hidden">
+<div class="absolute inset-0 opacity-20">
+<img class="w-full h-full object-cover" data-alt="abstract world map with glowing grid lines on a dark digital background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQTX6gJDhYjdX8ynhjNH9iFPZdPKY1V0KXdNX2CFz4u9IfKRn2abGNoLoobkCyVeuOQqdq779dmLHherjtiqosLCmPd-0d32cR0tfBmsWcWantw1XWbxMTONPthPUn6HuHiKpHpSvwEaNhSnUDGf5D2C3cSC5jnG8U_-iiFxr7SKXF8csrx2ygYx0-XaygmqRUdrfpkI6-eaethQKTtS7BLBl5-YwrJ3BTfvT5V6HAcWemBsIc5CI9gzbKM6TgLqLN9dXtQM-mBuFt"/>
+</div>
+<div class="relative z-10 space-y-4">
+<h4 class="text-white font-bold text-sm tracking-widest uppercase">Global Node Health</h4>
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<span class="text-xs text-white/60">North America (AWS)</span>
+<span class="text-[10px] text-green-400 font-bold">STABLE</span>
+</div>
+<div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+<div class="bg-green-400 h-full w-[98%] shadow-[0_0_5px_rgba(74,222,128,0.5)]"></div>
+</div>
+<div class="flex justify-between items-center pt-2">
+<span class="text-xs text-white/60">Europe (GCP)</span>
+<span class="text-[10px] text-green-400 font-bold">STABLE</span>
+</div>
+<div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+<div class="bg-green-400 h-full w-[94%] shadow-[0_0_5px_rgba(74,222,128,0.5)]"></div>
+</div>
+<div class="flex justify-between items-center pt-2">
+<span class="text-xs text-white/60">Asia Pacific (Azure)</span>
+<span class="text-[10px] text-[#00D9FF] font-bold">SYNCING</span>
+</div>
+<div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+<div class="bg-[#00D9FF] h-full w-[45%] shadow-[0_0_5px_rgba(0,217,255,0.5)] animate-pulse"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual FAB (Only on Home/Dashboard as per mandate) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-[#00D9FF] text-on-primary rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(0,217,255,0.6)] hover:scale-110 transition-transform z-[100]">
+<span class="material-symbols-outlined" data-icon="add" style="font-variation-settings: 'FILL' 1;">add</span>
+</button>
+</body></html>
