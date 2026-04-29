@@ -79,6 +79,17 @@ async def docs():
     return {"message": "Visit /docs for Swagger UI documentation"}
 
 
+# Admin endpoint to create tables manually
+@app.post("/api/admin/init-db")
+async def admin_init_db():
+    """Initialize database tables - call this after setting up environment variables"""
+    try:
+        await init_db()
+        return {"status": "success", "message": "Database tables created successfully"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
