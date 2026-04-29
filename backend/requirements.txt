@@ -13,10 +13,10 @@ alembic==1.13.1
 # Twilio
 twilio==8.10.0
 
-# LiveKit
-livekit-api>=0.4.1
-livekit-agents>=0.4.0
-livekit-plugins-openai>=0.4.0
+# LiveKit (specific versions for compatibility)
+livekit-api>=1.0.0
+livekit-agents>=1.0.0
+livekit-plugins-openai>=1.0.0
 
 # OpenAI (for LLM)
 openai==1.12.0
