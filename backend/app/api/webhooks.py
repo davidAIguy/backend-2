@@ -32,11 +32,18 @@ async def twilio_inbound_call(
     from_number = form_data.get("From", "")
     to_number = form_data.get("To", "")
     
-    # Find agent by phone number
-    result = await db.execute(
-        select(Agent).where(Agent.phone_number == to_number, Agent.is_active == True)
-    )
-    agent = result.scalar_one_or_none()
+    # Find agent by phone number - normalize phone numbers for comparison
+    to_number_normalized = ''.join(c for c in to_number if c.isdigit() or c == '+')
+    result = await db.execute(select(Agent).where(Agent.is_active == True))
+    agents = result.scalars().all()
+    
+    agent = None
+    for a in agents:
+        if a.phone_number:
+            agent_phone_normalized = ''.join(c for c in a.phone_number if c.isdigit() or c == '+')
+            if agent_phone_normalized == to_number_normalized:
+                agent = a
+                break
     
     if not agent:
         # No agent found - play a message or redirect
