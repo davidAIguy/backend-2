@@ -54,3 +54,4 @@ class Call(Base):
     # Relationships
     agent = relationship("Agent", back_populates="calls")
     transcript = relationship("Transcript", back_populates="call", uselist=False)
+    costs = relationship("Cost", back_populates="call")
