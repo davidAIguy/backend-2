@@ -2,13 +2,14 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { agentsApi, type Agent } from '@/lib/api';
-import { Phone, Users, Settings, Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { Phone, Users, Settings, Plus, Pencil, Trash2, Search, X, Eye } from 'lucide-react';
 import { useState } from 'react';
 
 export default function AgentsPage() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
+  const [viewingAgent, setViewingAgent] = useState<Agent | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: agents, isLoading } = useQuery({
@@ -21,6 +22,14 @@ export default function AgentsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agents'] });
       setShowForm(false);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Agent> }) => agentsApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agents'] });
+      setEditingAgent(null);
     },
   });
 
@@ -44,6 +53,24 @@ export default function AgentsPage() {
       voice: formData.get('voice') as string || 'alloy',
       llm_model: formData.get('llm_model') as string || 'gpt-4-turbo',
       phone_number: phoneNumber || undefined,
+    });
+  };
+
+  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingAgent) return;
+    const formData = new FormData(e.currentTarget);
+    const phoneNumber = formData.get('phone_number') as string;
+    updateMutation.mutate({
+      id: editingAgent.id,
+      data: {
+        name: formData.get('name') as string,
+        description: formData.get('description') as string,
+        system_prompt: formData.get('system_prompt') as string,
+        voice: formData.get('voice') as string || 'alloy',
+        llm_model: formData.get('llm_model') as string || 'gpt-4-turbo',
+        phone_number: phoneNumber || undefined,
+      },
     });
   };
 
@@ -164,6 +191,18 @@ export default function AgentsPage() {
                         {agent.is_active ? 'Active' : 'Inactive'}
                       </span>
                       <button 
+                        onClick={() => setViewingAgent(agent)}
+                        className="p-2 text-white/20 hover:text-cyan-glow transition-colors"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button 
+                        onClick={() => setEditingAgent(agent)}
+                        className="p-2 text-white/20 hover:text-yellow-400 transition-colors"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button 
                         onClick={() => deleteMutation.mutate(agent.id)}
                         className="p-2 text-white/20 hover:text-red-400 transition-colors"
                       >
@@ -228,6 +267,118 @@ export default function AgentsPage() {
                 </button>
                 <button type="submit" className="flex-1 py-3 rounded-xl bg-cyan-glow text-on-primary font-bold hover:opacity-90 transition-all">
                   Create Agent
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Agent Modal */}
+      {viewingAgent && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-100 flex items-center justify-center p-4">
+          <div className="glass rounded-2xl p-8 w-full max-w-lg border border-white/10">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-white">Agent Details</h2>
+              <button onClick={() => setViewingAgent(null)} className="p-2 text-white/40 hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs text-white/40 uppercase tracking-wider mb-1">Name</label>
+                <div className="text-white">{viewingAgent.name}</div>
+              </div>
+              <div>
+                <label className="block text-xs text-white/40 uppercase tracking-wider mb-1">Phone Number</label>
+                <div className="text-white font-mono">{viewingAgent.phone_number || 'Not assigned'}</div>
+              </div>
+              <div>
+                <label className="block text-xs text-white/40 uppercase tracking-wider mb-1">Status</label>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                  viewingAgent.is_active ? 'bg-green-500/10 text-green-400' : 'bg-white/10 text-white/40'
+                }`}>
+                  {viewingAgent.is_active ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+              <div>
+                <label className="block text-xs text-white/40 uppercase tracking-wider mb-1">Description</label>
+                <div className="text-white/60 text-sm">{viewingAgent.description || 'No description'}</div>
+              </div>
+              <div>
+                <label className="block text-xs text-white/40 uppercase tracking-wider mb-1">Voice</label>
+                <div className="text-white">{viewingAgent.voice}</div>
+              </div>
+              <div>
+                <label className="block text-xs text-white/40 uppercase tracking-wider mb-1">LLM Model</label>
+                <div className="text-white">{viewingAgent.llm_model}</div>
+              </div>
+              <div>
+                <label className="block text-xs text-white/40 uppercase tracking-wider mb-1">System Prompt</label>
+                <div className="bg-white/5 rounded-xl p-4 text-sm text-white/60 max-h-40 overflow-y-auto">
+                  {viewingAgent.system_prompt}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Agent Modal */}
+      {editingAgent && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-100 flex items-center justify-center p-4">
+          <div className="glass rounded-2xl p-8 w-full max-w-lg border border-white/10">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-white">Edit Agent</h2>
+              <button onClick={() => setEditingAgent(null)} className="p-2 text-white/40 hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs text-white/60 mb-2">Name</label>
+                <input name="name" defaultValue={editingAgent.name} required className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-cyan-glow focus:ring-1 focus:ring-cyan-glow" />
+              </div>
+              <div>
+                <label className="block text-xs text-white/60 mb-2">Phone Number (E.164 format)</label>
+                <input name="phone_number" defaultValue={editingAgent.phone_number || ''} placeholder="+50712345678" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-cyan-glow focus:ring-1 focus:ring-cyan-glow" />
+              </div>
+              <div>
+                <label className="block text-xs text-white/60 mb-2">Description</label>
+                <input name="description" defaultValue={editingAgent.description || ''} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-cyan-glow focus:ring-1 focus:ring-cyan-glow" />
+              </div>
+              <div>
+                <label className="block text-xs text-white/60 mb-2">System Prompt</label>
+                <textarea name="system_prompt" defaultValue={editingAgent.system_prompt} required rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-cyan-glow focus:ring-1 focus:ring-cyan-glow" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-white/60 mb-2">Voice</label>
+                  <select name="voice" defaultValue={editingAgent.voice} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-cyan-glow">
+                    <option value="alloy">Alloy</option>
+                    <option value="echo">Echo</option>
+                    <option value="fable">Fable</option>
+                    <option value="onyx">Onyx</option>
+                    <option value="nova">Nova</option>
+                    <option value="shimmer">Shimmer</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-white/60 mb-2">LLM Model</label>
+                  <select name="llm_model" defaultValue={editingAgent.llm_model} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:border-cyan-glow">
+                    <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                    <option value="claude-3-opus">Claude 3 Opus</option>
+                    <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-4 pt-4">
+                <button type="button" onClick={() => setEditingAgent(null)} className="flex-1 py-3 rounded-xl bg-white/5 text-white font-bold hover:bg-white/10 transition-all">
+                  Cancel
+                </button>
+                <button type="submit" className="flex-1 py-3 rounded-xl bg-yellow-500 text-black font-bold hover:opacity-90 transition-all">
+                  Save Changes
                 </button>
               </div>
             </form>
