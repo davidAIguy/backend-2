@@ -35,7 +35,8 @@ app = FastAPI(
     title="Voice AI Platform API",
     description="API for managing AI voice agents with Twilio and LiveKit",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    redirect_slashes=False,
 )
 
 # CORS middleware
