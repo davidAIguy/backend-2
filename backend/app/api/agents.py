@@ -25,6 +25,7 @@ async def create_agent(
         system_prompt=agent_data.system_prompt,
         voice=agent_data.voice,
         llm_model=agent_data.llm_model,
+        phone_number=agent_data.phone_number,
         tools=agent_data.tools,
         is_active=agent_data.is_active
     )
@@ -53,7 +54,7 @@ async def list_agents(
     return agents
 
 
-@router.get("/{agent_id}", response_model=AgentResponse)
+@router.get("/{agent_id}/", response_model=AgentResponse)
 async def get_agent(
     agent_id: str,
     db: AsyncSession = Depends(get_db)
@@ -68,7 +69,7 @@ async def get_agent(
     return agent
 
 
-@router.get("/{agent_id}/stats", response_model=AgentWithStats)
+@router.get("/{agent_id}/stats/", response_model=AgentWithStats)
 async def get_agent_stats(
     agent_id: str,
     db: AsyncSession = Depends(get_db)
@@ -109,7 +110,7 @@ async def get_agent_stats(
     )
 
 
-@router.put("/{agent_id}", response_model=AgentResponse)
+@router.put("/{agent_id}/", response_model=AgentResponse)
 async def update_agent(
     agent_id: str,
     agent_data: AgentUpdate,
@@ -132,7 +133,7 @@ async def update_agent(
     return agent
 
 
-@router.delete("/{agent_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{agent_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_agent(
     agent_id: str,
     db: AsyncSession = Depends(get_db)
@@ -148,25 +149,13 @@ async def delete_agent(
     await db.commit()
 
 
-@router.post("/{agent_id}/phone", response_model=AgentResponse)
-async def assign_phone_number(
+@router.post("/{agent_id}/phone/")
+async def assign_phone(
     agent_id: str,
     phone_number: str,
     db: AsyncSession = Depends(get_db)
 ):
-    """Assign a phone number to an agent"""
-    # Check if phone number is already assigned
-    result = await db.execute(
-        select(Agent).where(Agent.phone_number == phone_number)
-    )
-    existing = result.scalar_one_or_none()
-    
-    if existing and existing.id != agent_id:
-        raise HTTPException(
-            status_code=400,
-            detail="Phone number already assigned to another agent"
-        )
-    
+    """Assign phone number to agent"""
     result = await db.execute(select(Agent).where(Agent.id == agent_id))
     agent = result.scalar_one_or_none()
     
@@ -174,25 +163,6 @@ async def assign_phone_number(
         raise HTTPException(status_code=404, detail="Agent not found")
     
     agent.phone_number = phone_number
-    agent.updated_at = datetime.utcnow()
-    await db.commit()
-    await db.refresh(agent)
-    return agent
-
-
-@router.delete("/{agent_id}/phone", response_model=AgentResponse)
-async def remove_phone_number(
-    agent_id: str,
-    db: AsyncSession = Depends(get_db)
-):
-    """Remove phone number from an agent"""
-    result = await db.execute(select(Agent).where(Agent.id == agent_id))
-    agent = result.scalar_one_or_none()
-    
-    if not agent:
-        raise HTTPException(status_code=404, detail="Agent not found")
-    
-    agent.phone_number = None
     agent.updated_at = datetime.utcnow()
     await db.commit()
     await db.refresh(agent)
