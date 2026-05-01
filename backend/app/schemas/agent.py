@@ -12,6 +12,7 @@ class AgentBase(BaseModel):
     llm_model: str = "gpt-4-turbo-preview"
     tools: List[Dict[str, Any]] = []
     is_active: bool = True
+    phone_number: Optional[str] = None
 
 
 class AgentCreate(AgentBase):
@@ -26,6 +27,7 @@ class AgentUpdate(BaseModel):
     llm_model: Optional[str] = None
     tools: Optional[List[Dict[str, Any]]] = None
     is_active: Optional[bool] = None
+    phone_number: Optional[str] = None
 
 
 class AgentResponse(AgentBase):
