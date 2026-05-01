@@ -74,13 +74,13 @@ export interface Tool {
 
 // Agents API
 export const agentsApi = {
-  list: () => api.get<Agent[]>('/api/agents'),
-  get: (id: string) => api.get<Agent>(`/api/agents/${id}`),
-  create: (data: Partial<Agent>) => api.post<Agent>('/api/agents', data),
-  update: (id: string, data: Partial<Agent>) => api.put<Agent>(`/api/agents/${id}`, data),
-  delete: (id: string) => api.delete(`/api/agents/${id}`),
+  list: () => api.get<Agent[]>('/api/agents/'),
+  get: (id: string) => api.get<Agent>(`/api/agents/${id}/`),
+  create: (data: Partial<Agent>) => api.post<Agent>('/api/agents/', data),
+  update: (id: string, data: Partial<Agent>) => api.put<Agent>(`/api/agents/${id}/`, data),
+  delete: (id: string) => api.delete(`/api/agents/${id}/`),
   assignPhone: (id: string, phoneNumber: string) => 
-    api.post<Agent>(`/api/agents/${id}/phone`, null, { params: { phone_number: phoneNumber } }),
+    api.post<Agent>(`/api/agents/${id}/phone/`, null, { params: { phone_number: phoneNumber } }),
 };
 
 // Calls API
