@@ -1,57 +1,42 @@
 import os
-from livekit import rtc
-from livekit.agents import (
-    JobContext,
-    WorkerOptions,
-    cli,
-    llm,
-)
-from livekit.plugins import openai
+from dotenv import load_dotenv
+from livekit import agents
+from livekit.agents import AgentServer, AgentSession, Agent, room_io
+from livekit.plugins import openai, ai_coustics
 
-# Set agent name for dispatch
-os.environ["AGENT_NAME"] = os.getenv("AGENT_NAME", "voice-agent")
+load_dotenv()
 
-async def entrypoint(ctx: JobContext):
-    print(f"[AGENT] Room connected: {ctx.room.name}")
-    
-    agent_config = get_agent_config()
-    
-    initial_ctx = llm.ChatContext()
-    initial_ctx.messages.append(
-        llm.ChatMessage(
-            role=llm.ChatRole.SYSTEM,
-            content=agent_config["system_prompt"]
+AGENT_NAME = os.getenv("AGENT_NAME", "voice-agent")
+SYSTEM_PROMPT = os.getenv("AGENT_SYSTEM_PROMPT", "You are a helpful AI voice assistant. Be friendly and concise.")
+VOICE = os.getenv("AGENT_VOICE", "alloy")
+
+
+class Assistant(Agent):
+    def __init__(self) -> None:
+        super().__init__(instructions=SYSTEM_PROMPT)
+
+
+server = AgentServer()
+
+
+@server.rtc_session(agent_name=AGENT_NAME)
+async def voice_agent(ctx: agents.JobContext):
+    session = AgentSession(
+        llm=openai.realtime.RealtimeModel(
+            voice=VOICE,
         )
     )
 
-    agent = openai.realtime.RealtimeModel(
-        instructions=agent_config["system_prompt"],
-        voice=agent_config.get("voice", "alloy"),
+    await session.start(
+        room=ctx.room,
+        agent=Assistant(),
     )
 
-    @ctx.room.on("track_subscribed")
-    def on_track_subscribed(track, publication, participant: rtc.RemoteParticipant):
-        print(f"[AGENT] Track subscribed from {participant.identity}")
-        if track.kind == rtc.TrackKind.KIND_AUDIO:
-            agent.start(ctx.room, participant)
-
-    await ctx.connect()
-
-
-def get_agent_config() -> dict:
-    return {
-        "system_prompt": os.getenv("AGENT_SYSTEM_PROMPT", "You are a helpful AI assistant."),
-        "voice": os.getenv("AGENT_VOICE", "alloy"),
-    }
+    await session.generate_reply(
+        instructions="Greet the user and offer your assistance."
+    )
 
 
 if __name__ == "__main__":
-    agent_name = os.getenv("AGENT_NAME", "voice-agent")
-    print(f"[WORKER] Starting with agent_name: {agent_name}")
-    
-    # Create worker options with agent name
-    opts = WorkerOptions(
-        entrypoint_fnc=entrypoint,
-    )
-    
-    cli.run_app(opts)
+    print(f"[WORKER] Starting voice-agent with name: {AGENT_NAME}")
+    agents.cli.run_app(server)
