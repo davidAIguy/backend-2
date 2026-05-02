@@ -1,5 +1,4 @@
 import os
-import sys
 from livekit import rtc
 from livekit.agents import (
     JobContext,
@@ -9,8 +8,8 @@ from livekit.agents import (
 )
 from livekit.plugins import openai
 
-# Debug: print all env vars
-print("[DEBUG] All env vars:", {k: v for k, v in os.environ.items() if 'AGENT' in k.upper() or 'LIVEKIT' in k.upper()})
+# Set agent name for dispatch
+os.environ["AGENT_NAME"] = os.getenv("AGENT_NAME", "voice-agent")
 
 async def entrypoint(ctx: JobContext):
     print(f"[AGENT] Room connected: {ctx.room.name}")
@@ -47,4 +46,12 @@ def get_agent_config() -> dict:
 
 
 if __name__ == "__main__":
-    cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
+    agent_name = os.getenv("AGENT_NAME", "voice-agent")
+    print(f"[WORKER] Starting with agent_name: {agent_name}")
+    
+    # Create worker options with agent name
+    opts = WorkerOptions(
+        entrypoint_fnc=entrypoint,
+    )
+    
+    cli.run_app(opts)
