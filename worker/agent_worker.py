@@ -1,5 +1,4 @@
 import os
-import asyncio
 from livekit import rtc
 from livekit.agents import (
     JobContext,
@@ -12,6 +11,7 @@ from livekit.plugins import openai
 
 async def entrypoint(ctx: JobContext):
     print(f"[AGENT] Room connected: {ctx.room.name}")
+    print(f"[AGENT] Agent name from env: {os.getenv('AGENT_NAME', 'NOT SET')}")
     
     agent_config = get_agent_config()
     
@@ -40,8 +40,7 @@ async def entrypoint(ctx: JobContext):
         print(f"[AGENT] Participant joined: {participant.identity}")
 
     print(f"[AGENT] Waiting for participants...")
-    await asyncio.sleep(30)  # Wait up to 30 seconds
-    print(f"[AGENT] Done waiting")
+    await ctx.connect()
 
 
 def get_agent_config() -> dict:
@@ -52,8 +51,10 @@ def get_agent_config() -> dict:
 
 
 if __name__ == "__main__":
-    cli.run_app(
-        WorkerOptions(
-            entrypoint_fnc=entrypoint,
-        )
-    )
+    # Set agent name from environment
+    agent_name = os.getenv("AGENT_NAME", "")
+    opts = WorkerOptions(entrypoint_fnc=entrypoint)
+    if agent_name:
+        opts.agent_name = agent_name
+    
+    cli.run_app(opts)
