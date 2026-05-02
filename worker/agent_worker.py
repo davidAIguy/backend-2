@@ -1,24 +1,19 @@
 import os
-import asyncio
 from livekit import rtc
 from livekit.agents import (
-    AutoSubscribe,
     JobContext,
-    JobProcess,
     WorkerOptions,
     cli,
     llm,
 )
-from livekit.agents.pipeline import VoicePipelineAgent
 from livekit.plugins import openai
 
 
 async def entrypoint(ctx: JobContext):
     await ctx.connect()
-
-    # Get agent configuration from room metadata or env
-    room_name = ctx.room.name
-    agent_config = get_agent_config(room_name)
+    print(f"Room connected: {ctx.room.name}")
+    
+    agent_config = get_agent_config()
     
     initial_ctx = llm.ChatContext()
     initial_ctx.messages.append(
@@ -28,17 +23,17 @@ async def entrypoint(ctx: JobContext):
         )
     )
 
-    agent = VoicePipelineAgent(
-        vad=rtc.VAD.load(),
-        stt=openai.STT.load(),
-        llm=openai.LLM(
-            model="gpt-4o-mini",
-            temperature=0.7,
-        ),
-        tts=openai.TTS(
-            voice=openai.TTSVoice(id=agent_config.get("voice", "alloy"),)
-        ),
-        chat_ctx=initial_ctx,
+    async def before_first_reply(agent, chat_ctx):
+        chat_ctx.messages.append(
+            llm.ChatMessage(
+                role=llm.ChatRole.ASSISTANT,
+                content="Hello! How can I help you today?"
+            )
+        )
+
+    agent = openai.realtime.RealtimeModel(
+        instructions=agent_config["system_prompt"],
+        voice=agent_config.get("voice", "alloy"),
     )
 
     @ctx.room.on("track_subscribed")
@@ -49,11 +44,9 @@ async def entrypoint(ctx: JobContext):
     await agent.spawn(ctx.room)
 
 
-def get_agent_config(room_name: str) -> dict:
-    """Get agent configuration - can be extended to fetch from database"""
-    # Default configuration
+def get_agent_config() -> dict:
     return {
-        "system_prompt": os.getenv("AGENT_SYSTEM_PROMPT", "You are a helpful AI assistant. Be friendly and concise."),
+        "system_prompt": os.getenv("AGENT_SYSTEM_PROMPT", "You are a helpful AI assistant."),
         "voice": os.getenv("AGENT_VOICE", "alloy"),
     }
 
@@ -62,6 +55,5 @@ if __name__ == "__main__":
     cli.run_app(
         WorkerOptions(
             entrypoint_fnc=entrypoint,
-            prewarm_fnc=None,
         )
     )
