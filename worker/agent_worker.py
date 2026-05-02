@@ -1,4 +1,5 @@
 import os
+import asyncio
 from livekit import rtc
 from livekit.agents import (
     JobContext,
@@ -10,8 +11,7 @@ from livekit.plugins import openai
 
 
 async def entrypoint(ctx: JobContext):
-    await ctx.connect()
-    print(f"Room connected: {ctx.room.name}")
+    print(f"[AGENT] Room connected: {ctx.room.name}")
     
     agent_config = get_agent_config()
     
@@ -23,14 +23,6 @@ async def entrypoint(ctx: JobContext):
         )
     )
 
-    async def before_first_reply(agent, chat_ctx):
-        chat_ctx.messages.append(
-            llm.ChatMessage(
-                role=llm.ChatRole.ASSISTANT,
-                content="Hello! How can I help you today?"
-            )
-        )
-
     agent = openai.realtime.RealtimeModel(
         instructions=agent_config["system_prompt"],
         voice=agent_config.get("voice", "alloy"),
@@ -38,10 +30,18 @@ async def entrypoint(ctx: JobContext):
 
     @ctx.room.on("track_subscribed")
     def on_track_subscribed(track, publication, participant: rtc.RemoteParticipant):
+        print(f"[AGENT] Track subscribed from {participant.identity}")
         if track.kind == rtc.TrackKind.KIND_AUDIO:
+            print(f"[AGENT] Starting agent for audio track")
             agent.start(ctx.room, participant)
 
-    await agent.spawn(ctx.room)
+    @ctx.room.on("participant_joined")
+    def on_participant_joined(participant: rtc.RemoteParticipant):
+        print(f"[AGENT] Participant joined: {participant.identity}")
+
+    print(f"[AGENT] Waiting for participants...")
+    await asyncio.sleep(30)  # Wait up to 30 seconds
+    print(f"[AGENT] Done waiting")
 
 
 def get_agent_config() -> dict:
