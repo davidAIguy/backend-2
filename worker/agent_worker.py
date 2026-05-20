@@ -128,7 +128,7 @@ def create_llm(llm_provider: str, llm_type: str, llm_model: str):
     
     if provider == "openai":
         if llm_type == "realtime":
-            return openai_plugin.realtime.RealtimeModel(model="gpt-4o-realtime-preview")
+            return openai_plugin.realtime.RealtimeModel(model=model)
         else:
             return openai_plugin.LLM(model=model)
     
